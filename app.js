@@ -37,16 +37,20 @@ class PitchDeckPresentation {
         this.slideIndicators.innerHTML = '';
         
         for (let i = 0; i < this.totalSlides; i++) {
-            const indicator = document.createElement('div');
+            const indicator = document.createElement('button');
             indicator.className = 'indicator';
+            indicator.type = 'button';
+            indicator.setAttribute('aria-label', `Go to slide ${i + 1}`);
             if (i === 0) indicator.classList.add('active');
             
-            // Add click event listener with proper scope
-            indicator.addEventListener('click', (e) => {
-                e.preventDefault();
-                console.log('Indicator clicked:', i);
-                this.goToSlide(i);
-            });
+            // Use closure to capture the correct index
+            indicator.addEventListener('click', ((slideIndex) => {
+                return (e) => {
+                    e.preventDefault();
+                    console.log('Indicator clicked:', slideIndex + 1);
+                    this.goToSlide(slideIndex);
+                };
+            })(i));
             
             this.slideIndicators.appendChild(indicator);
         }
@@ -130,11 +134,11 @@ class PitchDeckPresentation {
             startY = 0;
         }, { passive: true });
         
-        // CTA button functionality
+        // QR Code functionality
         document.addEventListener('click', (e) => {
-            if (e.target.matches('.cta-slide .btn')) {
+            if (e.target.matches('.qr-code')) {
                 e.preventDefault();
-                this.handleCTAClick();
+                this.handleQRCodeClick();
             }
         });
         
@@ -217,20 +221,28 @@ class PitchDeckPresentation {
         }
     }
     
-    handleCTAClick() {
-        // Create a more professional modal-like response
-        const message = `Thank you for your interest in the Solar Lighting & Smart Education project!
+    handleQRCodeClick() {
+        // Provide information about the QR code with Lions Club details
+        const message = `UPI Payment QR Code for Solar Lighting & Smart Education Project
 
-Investment Required: ₹14,07,800
-Impact: 567 lives transformed across 5 villages
+Account: Lions Club of Bombay Babulnath FRD Account
+UPI ID: QR919322657306-2334@unionbankofindia
+Amount: ₹14,07,800
 
-Next Steps:
-1. Partnership discussion
-2. Fund transfer & deployment  
-3. Implementation & monitoring
-4. Impact reporting
+About Lions Club of Babulnath:
+• Established 1982 (42+ years of service)
+• District 323A1 Premium Club
+• Major projects worth ₹45+ lakhs completed
+• Trusted CSR execution partner
+• Motto: "We Serve"
 
-This would typically connect you with our project team for immediate follow-up.`;
+Instructions:
+1. Scan the QR code with any UPI app (BHIM, PhonePe, Paytm, etc.)
+2. Verify the account details
+3. Enter the amount or use the pre-filled amount
+4. Complete the transaction
+
+Your CSR funding will be professionally managed by Lions Club of Babulnath in partnership with SELCO India and Rock & Anchor for guaranteed impact and transparent execution.`;
         
         alert(message);
     }
@@ -291,6 +303,18 @@ class SlideAnimations {
                 e.target.style.boxShadow = 'var(--shadow-lg)';
                 e.target.style.transition = 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
             }
+            
+            if (e.target.matches('.qr-code')) {
+                e.target.style.transform = 'scale(1.05)';
+                e.target.style.transition = 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
+                e.target.style.cursor = 'pointer';
+            }
+            
+            if (e.target.matches('.partner-profile')) {
+                e.target.style.transform = 'translateY(-4px)';
+                e.target.style.boxShadow = 'var(--shadow-md)';
+                e.target.style.transition = 'all 0.3s cubic-bezier(0.16, 1, 0.3, 1)';
+            }
         }, true);
         
         document.addEventListener('mouseleave', (e) => {
@@ -299,6 +323,15 @@ class SlideAnimations {
             }
             
             if (e.target.matches('.sdg-item')) {
+                e.target.style.transform = 'translateY(0)';
+                e.target.style.boxShadow = 'var(--shadow-sm)';
+            }
+            
+            if (e.target.matches('.qr-code')) {
+                e.target.style.transform = 'scale(1)';
+            }
+            
+            if (e.target.matches('.partner-profile')) {
                 e.target.style.transform = 'translateY(0)';
                 e.target.style.boxShadow = 'var(--shadow-sm)';
             }
@@ -326,7 +359,7 @@ class SlideAnimations {
     
     animateSlideElements(slide) {
         const animatableElements = slide.querySelectorAll(
-            '.challenge-item, .impact-item, .sdg-item, .partner-box, .benefit-item, .step'
+            '.challenge-item, .impact-item, .sdg-item, .partner-box, .partner-profile, .benefit-item, .step-item, .payment-section, .investment-ask, .next-steps, .partnership-info'
         );
         
         animatableElements.forEach((element, index) => {
@@ -356,76 +389,47 @@ const PresentationUtils = {
         }
     },
     
-    checkImageLoading() {
-        const costChartImage = document.querySelector('.cost-chart img');
-        if (costChartImage) {
-            costChartImage.addEventListener('load', () => {
-                console.log('Cost breakdown chart loaded successfully');
+    copyUPIId() {
+        const upiId = "QR919322657306-2334@unionbankofindia";
+        if (navigator.clipboard) {
+            navigator.clipboard.writeText(upiId).then(() => {
+                alert('UPI ID copied to clipboard: ' + upiId + '\n\nThis is the Lions Club of Babulnath FRD Account for direct CSR funding of the Solar Lighting & Smart Education project.');
+            }).catch(() => {
+                alert('UPI ID: ' + upiId + '\n\nLions Club of Babulnath FRD Account\nFor Solar Lighting & Smart Education CSR project');
             });
-            
-            costChartImage.addEventListener('error', (e) => {
-                console.error('Failed to load cost breakdown chart:', e);
-                // Provide fallback content
-                const container = costChartImage.parentElement;
-                container.innerHTML = `
-                    <div class="chart-fallback">
-                        <h4>Project Cost Breakdown</h4>
-                        <div class="cost-items">
-                            <div class="cost-item">
-                                <span>Home Lighting Systems (92 homes)</span>
-                                <strong>₹17,75,600</strong>
-                            </div>
-                            <div class="cost-item">
-                                <span>Smart School Systems (3 schools)</span>
-                                <strong>₹9,30,000</strong>
-                            </div>
-                            <div class="cost-item">
-                                <span>Smart Anganwadi System</span>
-                                <strong>₹1,10,000</strong>
-                            </div>
-                            <div class="cost-total">
-                                <span>Total Project Cost</span>
-                                <strong>₹28,15,600</strong>
-                            </div>
-                        </div>
-                    </div>
-                `;
-                
-                // Add styles for fallback
-                const style = document.createElement('style');
-                style.textContent = `
-                    .chart-fallback {
-                        background: var(--color-surface);
-                        padding: var(--space-20);
-                        border-radius: var(--radius-lg);
-                        border: 1px solid var(--color-border);
-                    }
-                    .cost-items {
-                        display: grid;
-                        gap: var(--space-12);
-                        margin-top: var(--space-16);
-                    }
-                    .cost-item {
-                        display: flex;
-                        justify-content: space-between;
-                        padding: var(--space-12);
-                        background: var(--color-bg-1);
-                        border-radius: var(--radius-base);
-                    }
-                    .cost-total {
-                        display: flex;
-                        justify-content: space-between;
-                        padding: var(--space-16);
-                        background: var(--color-primary);
-                        color: var(--color-btn-primary-text);
-                        border-radius: var(--radius-base);
-                        font-weight: var(--font-weight-bold);
-                        margin-top: var(--space-12);
-                    }
-                `;
-                document.head.appendChild(style);
-            });
+        } else {
+            alert('UPI ID: ' + upiId + '\n\nLions Club of Babulnath FRD Account\nFor Solar Lighting & Smart Education CSR project');
         }
+    },
+    
+    showPartnershipInfo() {
+        const info = `Partnership Structure for Solar Lighting & Smart Education Project:
+
+🔧 SELCO India
+• Technical expertise and implementation
+• 50% funding match (₹14,07,800)
+• Award-winning sustainable energy solutions
+
+🌱 Rock & Anchor
+• Community engagement and local execution
+• Grassroots connections in Karjat region
+• Cultural sensitivity and smooth implementation
+
+🦁 Lions Club of Babulnath
+• CSR coordination and project management
+• 42+ years of community service experience
+• Transparent fund utilization and reporting
+• Professional project oversight
+
+💼 Your CSR Investment
+• ₹14,07,800 funding requirement
+• Direct impact on 567 lives across 5 villages
+• Measurable outcomes and regular reporting
+• Perfect alignment with CSR mandates
+
+This four-way partnership ensures professional management, technical excellence, community engagement, and transparent execution for maximum impact.`;
+        
+        alert(info);
     }
 };
 
@@ -440,8 +444,19 @@ document.addEventListener('DOMContentLoaded', () => {
         // Initialize animations
         const animations = new SlideAnimations();
         
-        // Check image loading
-        PresentationUtils.checkImageLoading();
+        // Add click handler for UPI ID copy
+        document.addEventListener('click', (e) => {
+            if (e.target.matches('.upi-id')) {
+                e.preventDefault();
+                PresentationUtils.copyUPIId();
+            }
+            
+            // Add click handler for Lions Club trust badge
+            if (e.target.matches('.lions-trust')) {
+                e.preventDefault();
+                PresentationUtils.showPartnershipInfo();
+            }
+        });
         
         // Global keyboard shortcuts
         document.addEventListener('keydown', (e) => {
@@ -449,15 +464,23 @@ document.addEventListener('DOMContentLoaded', () => {
                 e.preventDefault();
                 PresentationUtils.toggleFullscreen();
             }
+            
+            // Add shortcut for partnership info
+            if ((e.ctrlKey || e.metaKey) && (e.key === 'p' || e.key === 'P')) {
+                e.preventDefault();
+                PresentationUtils.showPartnershipInfo();
+            }
         });
         
         // Expose for debugging
         window.pitchDeck = presentation;
         window.presentationUtils = PresentationUtils;
         
-        console.log('✅ CSR Pitch Deck initialized successfully');
-        console.log('Navigation: Arrow keys, space bar, or click buttons/dots');
-        console.log('Shortcuts: Ctrl+F for fullscreen, Home/End for first/last slide');
+        console.log('✅ CSR Pitch Deck with Lions Club Partnership initialized successfully');
+        console.log('Navigation: Arrow keys, space bar, navigation buttons, or click dots');
+        console.log('Shortcuts: Ctrl+F for fullscreen, Ctrl+P for partnership info, Home/End for first/last slide');
+        console.log('Payment: Click QR code for instructions, click UPI ID to copy');
+        console.log('Partnership: Lions Club of Babulnath + SELCO India + Rock & Anchor');
         
     } catch (error) {
         console.error('❌ Failed to initialize presentation:', error);
